@@ -1145,5 +1145,91 @@ loadBookNestPages();
 })();
 </script>
 
+<section id="booknest-comments">
+  <h2>💬 Komentar Pembaca</h2>
+  <p>Kenali tanggapan pembaca dari situs WordPress BookNest.</p>
+  <div id="wp-comments-list">Memuat komentar...</div>
+  <p class="comments-source">Sumber: WordPress.com REST API</p>
+</section>
+
+<style>
+  #booknest-comments {
+    margin: 35px 0;
+    padding: 24px;
+    border-radius: 18px;
+    background: #f7efe3;
+    color: #503b2d;
+  }
+
+  #booknest-comments h2 {
+    color: #503b2d;
+  }
+
+  .wp-comment-card {
+    margin: 12px 0;
+    padding: 16px;
+    border: 1px solid #e4d3bd;
+    border-radius: 12px;
+    background: #fffdf9;
+  }
+
+  .wp-comment-author {
+    font-weight: bold;
+    color: #805637;
+  }
+
+  .comments-source {
+    font-size: 12px;
+    color: #795e4b;
+  }
+</style>
+
+<script>
+(async function () {
+  const container = document.getElementById("wp-comments-list");
+  const api =
+    "https://public-api.wordpress.com/rest/v1.1/sites/integrasidotblog.wordpress.com/comments/?number=5";
+
+  try {
+    const response = await fetch(api);
+    if (!response.ok) throw new Error("API tidak tersedia");
+
+    const data = await response.json();
+    const comments = data.comments || [];
+
+    if (comments.length === 0) {
+      container.textContent =
+        "Belum ada komentar di WordPress BookNest. Data dari Comments API berhasil diperiksa.";
+      return;
+    }
+
+    container.replaceChildren();
+
+    comments.slice(0, 5).forEach(function (comment) {
+      const card = document.createElement("article");
+      card.className = "wp-comment-card";
+
+      const name = document.createElement("p");
+      name.className = "wp-comment-author";
+      name.textContent =
+        comment.author && comment.author.name
+          ? comment.author.name
+          : "Pembaca BookNest";
+
+      const content = document.createElement("p");
+      content.textContent = String(comment.content || "")
+        .replace(/<[^>]*>/g, "")
+        .trim();
+
+      card.append(name, content);
+      container.appendChild(card);
+    });
+  } catch (error) {
+    container.textContent =
+      "Komentar belum dapat dimuat. Silakan coba lagi nanti.";
+  }
+})();
+</script>
+
 </body>
 </html>
