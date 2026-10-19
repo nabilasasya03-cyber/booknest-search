@@ -2,149 +2,218 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BookNest - Pencarian Buku Digital</title>
   <style>
+    * { box-sizing: border-box; }
+
     body {
       font-family: Arial, sans-serif;
-      max-width: 900px;
-      margin: 30px auto;
+      max-width: 1000px;
+      margin: 35px auto;
       padding: 20px;
-      color: #222;
+      background: #faf7f0;
+      color: #45362d;
       line-height: 1.6;
     }
-    h1 { font-size: 28px; }
+
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    header h1 {
+      color: #75513d;
+      font-size: 32px;
+      margin-bottom: 5px;
+    }
+
     .search {
       display: flex;
       gap: 10px;
-      flex-wrap: wrap;
+      max-width: 700px;
+      margin: 20px auto;
     }
+
     input {
       flex: 1;
-      min-width: 220px;
-      padding: 16px;
+      min-width: 0;
+      padding: 14px;
       font-size: 16px;
-      border: 1px solid #999;
-      border-radius: 7px;
+      border: 1px solid #c7b8a6;
+      border-radius: 8px;
+      background: white;
     }
+
     button {
-      padding: 15px 25px;
-      border: 0;
+      padding: 14px 22px;
+      border: none;
+      border-radius: 8px;
+      background: #795640;
       color: white;
-      background: linear-gradient(120deg, #3182ed, #994be0);
       cursor: pointer;
       font-size: 16px;
     }
-    #status { margin: 20px 0; }
+
+    button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    #status { text-align: center; }
+
+    #results {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-top: 25px;
+    }
+
     .book {
       display: flex;
-      gap: 18px;
-      border-bottom: 1px solid #ddd;
-      padding: 18px 0;
+      gap: 14px;
+      padding: 16px;
+      background: white;
+      border: 1px solid #e6d9c9;
+      border-radius: 10px;
     }
+
     .book img {
-      width: 100px;
-      height: auto;
+      width: 90px;
+      height: 135px;
       object-fit: contain;
-      align-self: flex-start;
+      flex-shrink: 0;
+      background: #f4eee5;
     }
-    .book h3 { margin: 0 0 8px; }
-    .book a { color: #5546b8; }
+
+    .book h3 {
+      font-size: 16px;
+      margin: 0 0 8px;
+    }
+
+    .book p {
+      font-size: 13px;
+      margin: 5px 0 12px;
+    }
+
+    .book a { color: #795640; }
+
+    @media (max-width: 500px) {
+      .search { flex-direction: column; }
+      .search button { width: 100%; }
+    }
   </style>
 </head>
 <body>
-  <h1>Pencarian Buku Digital</h1>
-  <p>Cari buku berdasarkan judul atau nama penulis.</p>
+  <header>
+    <h1>BookNest</h1>
+    <h2>Pencarian Buku Digital</h2>
+    <p>Temukan buku favoritmu melalui katalog Open Library.</p>
+  </header>
 
   <form id="searchForm" class="search">
     <input id="query" type="search"
-      placeholder="Cari buku atau penulis..."
+      placeholder="Masukkan judul buku atau penulis..."
       aria-label="Cari buku" required>
-    <button type="submit">Search</button>
+    <button id="searchButton" type="submit">Search</button>
   </form>
 
   <p id="status" aria-live="polite">
-    Masukkan judul buku untuk memulai pencarian.
+    Coba cari Harry Potter, novel, atau nama penulis.
   </p>
   <div id="results"></div>
 
   <script>
     const form = document.getElementById("searchForm");
-    const queryInput = document.getElementById("query");
+    const input = document.getElementById("query");
+    const button = document.getElementById("searchButton");
     const statusBox = document.getElementById("status");
     const resultsBox = document.getElementById("results");
 
     form.addEventListener("submit", async function(event) {
       event.preventDefault();
 
-      const query = queryInput.value.trim();
+      const query = input.value.trim();
       if (!query) return;
 
+      button.disabled = true;
+      button.textContent = "Mencari...";
       statusBox.textContent = "Sedang mencari buku...";
       resultsBox.replaceChildren();
 
       try {
         const url =
-          "https://www.googleapis.com/books/v1/volumes?q=" +
-          encodeURIComponent(query) + "&maxResults=10";
+          "https://openlibrary.org/search.json?q=" +
+          encodeURIComponent(query) +
+          "&fields=key,title,author_name,cover_i,first_publish_year&limit=12";
 
         const response = await fetch(url);
-        if (!response.ok) throw new Error("API tidak merespons.");
+        if (!response.ok) {
+          throw new Error("API merespons dengan status " + response.status);
+        }
 
         const data = await response.json();
-        const books = data.items || [];
+        const books = data.docs || [];
 
         if (books.length === 0) {
-          statusBox.textContent = "Buku tidak ditemukan. Coba kata kunci lain.";
+          statusBox.textContent =
+            'Buku "' + query + '" tidak ditemukan. Coba kata kunci lain.';
           return;
         }
 
         statusBox.textContent =
-          "Ditemukan " + books.length + " hasil buku.";
+          "Ditemukan " + data.numFound.toLocaleString("id-ID") +
+          " hasil. Menampilkan " + books.length + " buku pertama.";
 
         books.forEach(function(book) {
-          const info = book.volumeInfo || {};
           const card = document.createElement("article");
           card.className = "book";
 
           const cover = document.createElement("img");
-          cover.alt = "Sampul buku";
+          cover.alt = "Sampul " + (book.title || "buku");
           cover.loading = "lazy";
-          cover.src =
-            info.imageLinks?.thumbnail ||
-            "https://placehold.co/100x140?text=Buku";
+          cover.src = book.cover_i
+            ? "https://covers.openlibrary.org/b/id/" +
+              book.cover_i + "-M.jpg"
+            : "https://placehold.co/90x135?text=No+Cover";
+
+          cover.onerror = function() {
+            cover.onerror = null;
+            cover.src = "https://placehold.co/90x135?text=No+Cover";
+          };
 
           const details = document.createElement("div");
           const title = document.createElement("h3");
-          title.textContent = info.title || "Judul tidak tersedia";
+          title.textContent = book.title || "Judul tidak tersedia";
 
           const author = document.createElement("p");
           author.textContent =
-            "Penulis: " + (info.authors || ["Tidak diketahui"]).join(", ");
+            "Penulis: " +
+            (book.author_name || ["Tidak diketahui"]).slice(0, 3).join(", ");
 
-          const description = document.createElement("p");
-          description.textContent =
-            info.description
-              ? info.description.slice(0, 240) + "..."
-              : "Deskripsi tidak tersedia.";
+          const year = document.createElement("p");
+          year.textContent = book.first_publish_year
+            ? "Terbit pertama: " + book.first_publish_year
+            : "Tahun terbit tidak tersedia";
 
-          details.append(title, author, description);
+          const link = document.createElement("a");
+          link.href = "https://openlibrary.org" + (book.key || "");
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = "Lihat detail buku";
 
-          if (info.infoLink) {
-            const link = document.createElement("a");
-            link.href = info.infoLink;
-            link.target = "_blank";
-            link.rel = "noopener noreferrer";
-            link.textContent = "Lihat detail buku";
-            details.appendChild(link);
-          }
-
+          details.append(title, author, year, link);
           card.append(cover, details);
           resultsBox.appendChild(card);
         });
       } catch (error) {
         statusBox.textContent =
-          "Pencarian gagal. Periksa koneksi internet dan coba lagi.";
+          "Pencarian gagal terhubung ke Open Library. " +
+          "Periksa koneksi internet dan coba lagi.";
+        console.error(error);
+      } finally {
+        button.disabled = false;
+        button.textContent = "Search";
       }
     });
   </script>
