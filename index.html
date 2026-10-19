@@ -218,62 +218,240 @@
     });
   </script>
   
-<section id="booknest-articles" style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;color:#333;">
-  <h2>📚 Artikel dari BookNest</h2>
-  <p>Artikel terbaru dari website WordPress BookNest.</p>
-  <div id="wp-articles">Memuat artikel...</div>
-  <p>
-    <a href="https://integrasidotblog.wordpress.com/" target="_blank" rel="noopener">
+
+<style>
+  #booknest-articles {
+    max-width: 1050px;
+    margin: 55px auto;
+    padding: 38px 24px;
+    font-family: Arial, sans-serif;
+    color: #34251e;
+    background: #fbf6ef;
+    border-radius: 24px;
+  }
+
+  #booknest-articles .article-heading {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  #booknest-articles .article-label {
+    display: inline-block;
+    padding: 8px 15px;
+    background: #ead9c5;
+    color: #704b35;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+  }
+
+  #booknest-articles h2 {
+    font-family: Georgia, serif;
+    font-size: clamp(27px, 4vw, 38px);
+    margin: 18px 0 10px;
+    color: #4a3025;
+  }
+
+  #booknest-articles .article-subtitle {
+    color: #857267;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  #booknest-articles .article-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 22px;
+    margin-top: 28px;
+  }
+
+  #booknest-articles .article-card {
+    background: #fffdf9;
+    border: 1px solid #eadfd2;
+    border-radius: 18px;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 5px 18px rgba(79, 52, 35, 0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  #booknest-articles .article-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 26px rgba(79, 52, 35, 0.12);
+  }
+
+  #booknest-articles .article-number {
+    color: #a47a58;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+  }
+
+  #booknest-articles .article-title {
+    font-family: Georgia, serif;
+    font-size: 21px;
+    line-height: 1.4;
+    margin: 0 0 12px;
+    color: #4a3025;
+  }
+
+  #booknest-articles .article-title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  #booknest-articles .article-title a:hover {
+    color: #a46e43;
+  }
+
+  #booknest-articles .article-excerpt {
+    color: #786b62;
+    font-size: 14px;
+    line-height: 1.8;
+    margin: 0 0 24px;
+    overflow-wrap: anywhere;
+  }
+
+  #booknest-articles .article-read {
+    display: inline-block;
+    align-self: flex-start;
+    margin-top: auto;
+    padding: 11px 17px;
+    background: #654632;
+    color: white;
+    text-decoration: none;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: bold;
+  }
+
+  #booknest-articles .article-read:hover {
+    background: #8a6245;
+  }
+
+  #booknest-articles .article-status {
+    text-align: center;
+    color: #786b62;
+    padding: 25px 10px;
+    line-height: 1.7;
+  }
+
+  #booknest-articles .article-footer {
+    text-align: center;
+    margin-top: 35px;
+    padding-top: 24px;
+    border-top: 1px solid #e6d8c9;
+  }
+
+  #booknest-articles .wordpress-link {
+    display: inline-block;
+    padding: 13px 21px;
+    border: 1px solid #8a6245;
+    border-radius: 10px;
+    color: #654632;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+  }
+
+  #booknest-articles .wordpress-link:hover {
+    background: #ead9c5;
+  }
+</style>
+
+<section id="booknest-articles">
+  <header class="article-heading">
+    <span class="article-label">BOOKNEST JOURNAL</span>
+    <h2>Cerita &amp; Inspirasi</h2>
+    <p class="article-subtitle">
+      Temukan bacaan, ide, dan cerita terbaru dari ruang baca BookNest.
+    </p>
+  </header>
+
+  <div id="wp-articles" class="article-status" aria-live="polite">
+    <span>📖 Sedang membuka halaman bacaan...</span>
+  </div>
+
+  <footer class="article-footer">
+    <a class="wordpress-link"
+       href="https://integrasidotblog.wordpress.com/"
+       target="_blank" rel="noopener">
       Kunjungi WordPress BookNest →
     </a>
-  </p>
+  </footer>
 </section>
 
 <script>
 (async function () {
   const container = document.getElementById("wp-articles");
-  const api = "https://public-api.wordpress.com/rest/v1.1/sites/integrasidotblog.wordpress.com/posts/?number=5";
+  const api =
+    "https://public-api.wordpress.com/rest/v1.1/sites/integrasidotblog.wordpress.com/posts/?number=5";
 
   try {
     const response = await fetch(api);
-    if (!response.ok) throw new Error("Gagal mengambil data WordPress");
+    if (!response.ok) throw new Error("WordPress API tidak tersedia");
 
     const data = await response.json();
 
     if (!data.posts || data.posts.length === 0) {
-      container.textContent = "Belum ada artikel yang bisa ditampilkan.";
+      container.textContent =
+        "Belum ada artikel. Tambahkan artikel publik di WordPress kamu.";
       return;
     }
 
-    container.innerHTML = "";
+    const grid = document.createElement("div");
+    grid.className = "article-grid";
 
-    data.posts.forEach(function (post) {
-      const article = document.createElement("article");
-      article.style.cssText = "padding:16px;margin:14px 0;border:1px solid #ddd;border-radius:12px;";
+    data.posts.forEach(function (post, index) {
+      const card = document.createElement("article");
+      card.className = "article-card";
 
-      const title = document.createElement("h3");
-      const link = document.createElement("a");
-      link.href = post.URL;
-      link.target = "_blank";
-      link.rel = "noopener";
-      link.textContent = post.title;
-      title.appendChild(link);
+      const number = document.createElement("div");
+      number.className = "article-number";
+      number.textContent = "BACAAN " + String(index + 1).padStart(2, "0");
+
+      const heading = document.createElement("h3");
+      heading.className = "article-title";
+
+      const titleLink = document.createElement("a");
+      titleLink.href = post.URL;
+      titleLink.target = "_blank";
+      titleLink.rel = "noopener";
+      titleLink.textContent = post.title || "Artikel BookNest";
+      heading.appendChild(titleLink);
 
       const excerpt = document.createElement("p");
+      excerpt.className = "article-excerpt";
       excerpt.textContent = post.excerpt
-        ? post.excerpt.replace(/<[^>]*>/g, "").trim()
-        : "Baca artikel selengkapnya di WordPress BookNest.";
+        ? post.excerpt.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+        : "Jelajahi artikel ini dan temukan bacaan menarik di BookNest.";
 
-      article.appendChild(title);
-      article.appendChild(excerpt);
-      container.appendChild(article);
+      const readLink = document.createElement("a");
+      readLink.className = "article-read";
+      readLink.href = post.URL;
+      readLink.target = "_blank";
+      readLink.rel = "noopener";
+      readLink.textContent = "Baca artikel →";
+
+      card.appendChild(number);
+      card.appendChild(heading);
+      card.appendChild(excerpt);
+      card.appendChild(readLink);
+      grid.appendChild(card);
     });
+
+    container.className = "";
+    container.replaceChildren(grid);
   } catch (error) {
     container.textContent =
-      "Artikel belum dapat dimuat. Silakan periksa koneksi atau API WordPress.";
+      "Artikel belum dapat dimuat. Silakan coba lagi nanti.";
     console.error(error);
   }
 })();
 </script>
+
 </body>
 </html>
