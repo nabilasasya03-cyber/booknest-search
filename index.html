@@ -627,5 +627,83 @@
 })();
 </script>
 
+<section id="wp-pages-booknest">
+  <h2>📖 Halaman WordPress BookNest</h2>
+  <p>Daftar halaman yang diambil langsung dari WordPress API.</p>
+  <div id="wp-pages-list">Memuat halaman...</div>
+</section>
+
+<style>
+  #wp-pages-booknest {
+    margin: 35px 0;
+    padding: 24px;
+    border-radius: 16px;
+    background: #f7efe3;
+    color: #503b2d;
+  }
+
+  #wp-pages-booknest h2 {
+    color: #503b2d;
+  }
+
+  .wp-page-card {
+    margin: 12px 0;
+    padding: 15px;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e4d3bd;
+  }
+
+  .wp-page-card a {
+    color: #805637;
+    font-weight: bold;
+  }
+</style>
+
+<script>
+async function loadBookNestPages() {
+  const container = document.getElementById("wp-pages-list");
+  const api =
+    "https://public-api.wordpress.com/rest/v1.1/sites/258043293/posts/?type=page&number=10";
+
+  try {
+    const response = await fetch(api);
+    if (!response.ok) throw new Error("API tidak merespons");
+
+    const data = await response.json();
+
+    if (!data.posts || data.posts.length === 0) {
+      container.textContent = "Belum ada halaman WordPress.";
+      return;
+    }
+
+    container.innerHTML = data.posts.map(page => `
+      <div class="wp-page-card">
+        <h3>${escapePageText(page.title)}</h3>
+        <p>${escapePageText(page.excerpt.replace(/<[^>]*>/g, "").replace(/&hellip;/g, "...").slice(0, 150))}</p>
+        <a href="${page.URL}" target="_blank" rel="noopener">
+          Buka halaman →
+        </a>
+      </div>
+    `).join("");
+  } catch (error) {
+    container.textContent =
+      "Halaman belum dapat dimuat. Silakan coba lagi.";
+  }
+}
+
+function escapePageText(text) {
+  return String(text).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+loadBookNestPages();
+</script>
+
 </body>
 </html>
