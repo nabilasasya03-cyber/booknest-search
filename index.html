@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookNest - Pencarian Buku Digital</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+      color: #222;
+      line-height: 1.6;
+    }
+    h1 { font-size: 28px; }
+    .search {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    input {
+      flex: 1;
+      min-width: 220px;
+      padding: 16px;
+      font-size: 16px;
+      border: 1px solid #999;
+      border-radius: 7px;
+    }
+    button {
+      padding: 15px 25px;
+      border: 0;
+      color: white;
+      background: linear-gradient(120deg, #3182ed, #994be0);
+      cursor: pointer;
+      font-size: 16px;
+    }
+    #status { margin: 20px 0; }
+    .book {
+      display: flex;
+      gap: 18px;
+      border-bottom: 1px solid #ddd;
+      padding: 18px 0;
+    }
+    .book img {
+      width: 100px;
+      height: auto;
+      object-fit: contain;
+      align-self: flex-start;
+    }
+    .book h3 { margin: 0 0 8px; }
+    .book a { color: #5546b8; }
+  </style>
+</head>
+<body>
+  <h1>Pencarian Buku Digital</h1>
+  <p>Cari buku berdasarkan judul atau nama penulis.</p>
+
+  <form id="searchForm" class="search">
+    <input id="query" type="search"
+      placeholder="Cari buku atau penulis..."
+      aria-label="Cari buku" required>
+    <button type="submit">Search</button>
+  </form>
+
+  <p id="status" aria-live="polite">
+    Masukkan judul buku untuk memulai pencarian.
+  </p>
+  <div id="results"></div>
+
+  <script>
+    const form = document.getElementById("searchForm");
+    const queryInput = document.getElementById("query");
+    const statusBox = document.getElementById("status");
+    const resultsBox = document.getElementById("results");
+
+    form.addEventListener("submit", async function(event) {
+      event.preventDefault();
+
+      const query = queryInput.value.trim();
+      if (!query) return;
+
+      statusBox.textContent = "Sedang mencari buku...";
+      resultsBox.replaceChildren();
+
+      try {
+        const url =
+          "https://www.googleapis.com/books/v1/volumes?q=" +
+          encodeURIComponent(query) + "&maxResults=10";
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("API tidak merespons.");
+
+        const data = await response.json();
+        const books = data.items || [];
+
+        if (books.length === 0) {
+          statusBox.textContent = "Buku tidak ditemukan. Coba kata kunci lain.";
+          return;
+        }
+
+        statusBox.textContent =
+          "Ditemukan " + books.length + " hasil buku.";
+
+        books.forEach(function(book) {
+          const info = book.volumeInfo || {};
+          const card = document.createElement("article");
+          card.className = "book";
+
+          const cover = document.createElement("img");
+          cover.alt = "Sampul buku";
+          cover.loading = "lazy";
+          cover.src =
+            info.imageLinks?.thumbnail ||
+            "https://placehold.co/100x140?text=Buku";
+
+          const details = document.createElement("div");
+          const title = document.createElement("h3");
+          title.textContent = info.title || "Judul tidak tersedia";
+
+          const author = document.createElement("p");
+          author.textContent =
+            "Penulis: " + (info.authors || ["Tidak diketahui"]).join(", ");
+
+          const description = document.createElement("p");
+          description.textContent =
+            info.description
+              ? info.description.slice(0, 240) + "..."
+              : "Deskripsi tidak tersedia.";
+
+          details.append(title, author, description);
+
+          if (info.infoLink) {
+            const link = document.createElement("a");
+            link.href = info.infoLink;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = "Lihat detail buku";
+            details.appendChild(link);
+          }
+
+          card.append(cover, details);
+          resultsBox.appendChild(card);
+        });
+      } catch (error) {
+        statusBox.textContent =
+          "Pencarian gagal. Periksa koneksi internet dan coba lagi.";
+      }
+    });
+  </script>
+</body>
+</html>
