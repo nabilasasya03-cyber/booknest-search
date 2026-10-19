@@ -705,5 +705,129 @@ function escapePageText(text) {
 loadBookNestPages();
 </script>
 
+<section id="booknest-quotes">
+  <h2>✨ Inspirasi Hari Ini</h2>
+  <p class="quote-intro">Sejenak berhenti, temukan inspirasi, lalu lanjutkan membaca.</p>
+  <div id="quote-card">
+    <p id="quote-text">Sedang mengambil inspirasi...</p>
+    <p id="quote-author"></p>
+  </div>
+  <button id="new-quote-btn" type="button">Inspirasi Lainnya ↻</button>
+  <p id="quote-source">Sumber: DummyJSON Quotes API</p>
+</section>
+
+<style>
+  #booknest-quotes {
+    margin: 35px 0;
+    padding: 26px;
+    border-radius: 18px;
+    background: #f7efe3;
+    color: #503b2d;
+    text-align: center;
+  }
+
+  #booknest-quotes h2 {
+    color: #503b2d;
+  }
+
+  #booknest-quotes .quote-intro {
+    color: #795e4b;
+  }
+
+  #quote-card {
+    margin: 20px auto;
+    padding: 22px;
+    max-width: 650px;
+    border-radius: 14px;
+    background: white;
+    border: 1px solid #e4d3bd;
+  }
+
+  #quote-text {
+    font-size: 1.2rem;
+    font-style: italic;
+    line-height: 1.7;
+  }
+
+  #quote-author {
+    font-weight: bold;
+    color: #805637;
+  }
+
+  #new-quote-btn {
+    padding: 11px 20px;
+    border: none;
+    border-radius: 25px;
+    background: #805637;
+    color: white;
+    cursor: pointer;
+  }
+
+  #quote-source {
+    margin-top: 14px;
+    font-size: 12px;
+    color: #795e4b;
+  }
+</style>
+
+<script>
+(async function () {
+  const quoteText = document.getElementById("quote-text");
+  const quoteAuthor = document.getElementById("quote-author");
+  const button = document.getElementById("new-quote-btn");
+
+  let quotes = [];
+  let currentIndex = 0;
+
+  function showQuote(index) {
+    const quote = quotes[index];
+    if (!quote) return;
+
+    quoteText.textContent = "“" + quote.quote + "”";
+    quoteAuthor.textContent = "— " + quote.author;
+  }
+
+  async function loadQuotes() {
+    button.disabled = true;
+    quoteText.textContent = "Mengambil inspirasi...";
+    quoteAuthor.textContent = "";
+
+    try {
+      const response = await fetch(
+        "https://dummyjson.com/quotes?limit=10"
+      );
+
+      if (!response.ok) throw new Error("API tidak tersedia");
+
+      const data = await response.json();
+      quotes = data.quotes || [];
+
+      if (!quotes.length) throw new Error("Data kutipan kosong");
+
+      currentIndex = Math.floor(Math.random() * quotes.length);
+      showQuote(currentIndex);
+    } catch (error) {
+      quoteText.textContent =
+        "Inspirasi belum dapat dimuat. Silakan coba lagi.";
+      quoteAuthor.textContent = "";
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  button.addEventListener("click", function () {
+    if (!quotes.length) {
+      loadQuotes();
+      return;
+    }
+
+    currentIndex = (currentIndex + 1) % quotes.length;
+    showQuote(currentIndex);
+  });
+
+  loadQuotes();
+})();
+</script>
+
 </body>
 </html>
