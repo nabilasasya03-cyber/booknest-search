@@ -217,5 +217,63 @@
       }
     });
   </script>
+  
+<section id="booknest-articles" style="max-width:900px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;color:#333;">
+  <h2>📚 Artikel dari BookNest</h2>
+  <p>Artikel terbaru dari website WordPress BookNest.</p>
+  <div id="wp-articles">Memuat artikel...</div>
+  <p>
+    <a href="https://integrasidotblog.wordpress.com/" target="_blank" rel="noopener">
+      Kunjungi WordPress BookNest →
+    </a>
+  </p>
+</section>
+
+<script>
+(async function () {
+  const container = document.getElementById("wp-articles");
+  const api = "https://public-api.wordpress.com/rest/v1.1/sites/integrasidotblog.wordpress.com/posts/?number=5";
+
+  try {
+    const response = await fetch(api);
+    if (!response.ok) throw new Error("Gagal mengambil data WordPress");
+
+    const data = await response.json();
+
+    if (!data.posts || data.posts.length === 0) {
+      container.textContent = "Belum ada artikel yang bisa ditampilkan.";
+      return;
+    }
+
+    container.innerHTML = "";
+
+    data.posts.forEach(function (post) {
+      const article = document.createElement("article");
+      article.style.cssText = "padding:16px;margin:14px 0;border:1px solid #ddd;border-radius:12px;";
+
+      const title = document.createElement("h3");
+      const link = document.createElement("a");
+      link.href = post.URL;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.textContent = post.title;
+      title.appendChild(link);
+
+      const excerpt = document.createElement("p");
+      excerpt.textContent = post.excerpt
+        ? post.excerpt.replace(/<[^>]*>/g, "").trim()
+        : "Baca artikel selengkapnya di WordPress BookNest.";
+
+      article.appendChild(title);
+      article.appendChild(excerpt);
+      container.appendChild(article);
+    });
+  } catch (error) {
+    container.textContent =
+      "Artikel belum dapat dimuat. Silakan periksa koneksi atau API WordPress.";
+    console.error(error);
+  }
+})();
+</script>
 </body>
 </html>
