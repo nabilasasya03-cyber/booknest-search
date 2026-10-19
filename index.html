@@ -453,5 +453,179 @@
 })();
 </script>
 
+<style>
+  #booknest-info {
+    max-width: 1050px;
+    margin: 35px auto;
+    padding: 30px 24px;
+    background: #fffaf3;
+    border: 1px solid #eadfd2;
+    border-radius: 22px;
+    font-family: Arial, sans-serif;
+    color: #4a3025;
+  }
+
+  #booknest-info h2 {
+    font-family: Georgia, serif;
+    text-align: center;
+    font-size: 30px;
+  }
+
+  #booknest-info .info-description {
+    text-align: center;
+    color: #857267;
+    line-height: 1.7;
+  }
+
+  #booknest-info .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+    margin-top: 25px;
+  }
+
+  #booknest-info .info-card {
+    background: white;
+    border: 1px solid #eadfd2;
+    border-radius: 15px;
+    padding: 22px;
+  }
+
+  #booknest-info .info-card h3 {
+    margin-top: 0;
+    color: #79553c;
+  }
+
+  #booknest-info .info-card p,
+  #booknest-info .info-card li {
+    color: #786b62;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+  }
+
+  #booknest-info .info-card ul {
+    padding-left: 20px;
+  }
+
+  #booknest-info .info-status {
+    color: #786b62;
+    font-size: 14px;
+  }
+</style>
+
+<section id="booknest-info">
+  <h2>Jelajahi BookNest</h2>
+  <p class="info-description">
+    Informasi situs dan kategori bacaan yang dimuat langsung
+    melalui WordPress REST API.
+  </p>
+
+  <div class="info-grid">
+    <article class="info-card">
+      <h3>🏡 Tentang BookNest</h3>
+      <div id="bn-site" class="info-status">
+        Memuat informasi situs...
+      </div>
+    </article>
+
+    <article class="info-card">
+      <h3>📚 Kategori Bacaan</h3>
+      <div id="bn-categories" class="info-status">
+        Memuat kategori...
+      </div>
+    </article>
+
+    <article class="info-card">
+      <h3>🏷️ Tag Bacaan</h3>
+      <div id="bn-tags" class="info-status">
+        Memuat tag...
+      </div>
+    </article>
+  </div>
+</section>
+
+<script>
+(async function () {
+  const base =
+    "https://public-api.wordpress.com/rest/v1.1/sites/integrasidotblog.wordpress.com";
+
+  async function getData(url) {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
+    }
+    return response.json();
+  }
+
+  function showList(elementId, items, emptyMessage) {
+    const container = document.getElementById(elementId);
+    container.replaceChildren();
+
+    if (!items || items.length === 0) {
+      container.textContent = emptyMessage;
+      return;
+    }
+
+    const list = document.createElement("ul");
+
+    items.forEach(function (item) {
+      const li = document.createElement("li");
+      li.textContent = item.name || item;
+      list.appendChild(li);
+    });
+
+    container.appendChild(list);
+  }
+
+  try {
+    const site = await getData(base + "/");
+
+    const siteBox = document.getElementById("bn-site");
+    siteBox.replaceChildren();
+
+    const name = document.createElement("p");
+    name.textContent = "Nama situs: " + (site.name || "BookNest");
+
+    const url = document.createElement("p");
+    url.textContent = "Alamat: " + (site.URL || site.url || "");
+
+    siteBox.appendChild(name);
+    siteBox.appendChild(url);
+  } catch (error) {
+    document.getElementById("bn-site").textContent =
+      "Informasi situs belum dapat dimuat.";
+    console.error("Site API:", error);
+  }
+
+  try {
+    const data = await getData(base + "/categories/?pretty=true");
+
+    showList(
+      "bn-categories",
+      data.categories || [],
+      "Belum ada kategori yang tersedia."
+    );
+  } catch (error) {
+    document.getElementById("bn-categories").textContent =
+      "Kategori belum dapat dimuat.";
+    console.error("Categories API:", error);
+  }
+
+  try {
+    const data = await getData(base + "/tags/?pretty=true");
+
+    showList(
+      "bn-tags",
+      data.tags || [],
+      "Belum ada tag. Kamu bisa menambahkan tag pada artikel WordPress."
+    );
+  } catch (error) {
+    document.getElementById("bn-tags").textContent =
+      "Tag belum dapat dimuat.";
+    console.error("Tags API:", error);
+  }
+})();
+</script>
+
 </body>
 </html>
